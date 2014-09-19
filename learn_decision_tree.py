@@ -2,15 +2,17 @@
 # n is the number of features per instance
 # m is the number of training instances
 
-import scipy.io.arff  # ARFF module
+import arff  # ARFF module
 
 class DT_learner():
 
-    instances_ = []
-    norminalities_ = []
-    value_order_ = []
+    instances_ = None
+    norminalities_ = None
+    value_order_ = None
+    tree_ = None  # Decision tree
     m_ = 0  # Number of training instances
     n_ = 0  # Number of features
+    min_instances = 0  # Min no. of instances at a node that allows splits
 
     def __init__(self, instances, norminalities, value_order):
         """Constructor for decision tree learner
@@ -56,7 +58,7 @@ class DT_learner():
 filename = "../data/heart_train.arff"
 
 # Load ARFF file
-data, metadata = scipy.io.arff.loadarff(filename)
+data, metadata = arff.loadarff(filename)
 
 # Length n+1 list of booleans for whether each feature is norminal
 # Feature is numeric if it's not norminal
