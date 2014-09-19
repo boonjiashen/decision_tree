@@ -29,12 +29,12 @@ class DT_learner():
             If norminalities[i] is True, value_order[i] is a tuple of the
             possible norminal values of feature[i].
         """
-        instances_ = instances
-        norminalities_ = norminalities
-        value_order_ = value_order
+        self.instances_ = instances
+        self.norminalities_ = norminalities
+        self.value_order_ = value_order
 
-        m_ = len(instances)
-        n_ = len(norminalities) - 1
+        self.m_ = len(instances)
+        self.n_ = len(norminalities) - 1
 
     def make_subtree(self, instances):
         """Return a decision sub-tree
@@ -54,10 +54,10 @@ class DT_learner():
 
         # Iterate over all features
         split_candidates = []
-        for fi in range(n_):
+        for fi in range(self.n_):
             if fi not in features_remaining:
                 continue
-            norminal = norminalities[fi]
+            norminal = self.norminalities[fi]
             if norminal:
                 split_candidate = (fi, None)
             else:
@@ -89,3 +89,6 @@ value_enumerations = []
 for name in metadata.names():
     norminality, value_enumeration = metadata[name]
     value_enumerations.append(value_enumeration)
+
+# Instantiate tree learner
+classifier = DT_learner(instances, norminalities, value_enumerations)
