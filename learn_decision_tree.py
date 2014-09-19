@@ -64,6 +64,30 @@ class DT_learner():
                 #TODO implement this
                 pass
 
+    def determine_candidate_numeric_splits(self, instances, feature_ind):
+        """Return a list of split candidates.
+
+        See determine_split_candidates() for representation
+        """
+        # TODO implement the full version of this function
+
+        # Check that feature is numeric
+        assert not self.norminalities_[feature_ind]
+
+        # Sort instances by feature
+        instances.sort(key=lambda x: x[feature_ind])
+
+        # Look for mid-point where instances[i] and
+        # instances[i+1] have different classes
+        candidates = []
+        for i in range(len(instances) - 1):
+            if instances[i][-1] != instances[i+1][-1]:
+                midpoint = (
+                        instances[i][feature_ind] +
+                        instances[i+1][feature_ind]) / 2
+                candidates.append((feature_ind, midpoint, ))
+
+        return candidates
 
 # Parse arguments
 parser = optparse.OptionParser()
@@ -76,13 +100,17 @@ filename = args[0]
 # Load ARFF file
 data, metadata = arff.loadarff(filename)
 
+# Change data to Python native list of lists
+#data_list = [[x for x in list_] for list_ in data]
+data_list = [list_ for list_ in data]
+
 # Length n+1 list of booleans for whether each feature is norminal
 # Feature is numeric if it's not norminal
 # The additional 1 is the class feature type
 norminalities = [type_ == 'nominal' for type_ in metadata.types()]
 
 # Get a length m list, each element is of length n+1 (features + label)
-instances = data
+instances = data_list
 
 # enumeration i is a tuple of all possible values of feature i
 value_enumerations = []
@@ -92,3 +120,6 @@ for name in metadata.names():
 
 # Instantiate tree learner
 classifier = DT_learner(instances, norminalities, value_enumerations)
+import random
+random.shuffle(classifier.instances_)
+subset = classifier.instances_[:10]
