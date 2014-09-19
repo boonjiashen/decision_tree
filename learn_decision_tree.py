@@ -15,6 +15,7 @@ class DT_learner():
     m_ = 0  # Number of training instances
     n_ = 0  # Number of features
     min_instances = 0  # Min no. of instances at a node that allows splits
+    class_priority = None  # left most class gets priority in tie-breakers
 
     def __init__(self, instances, norminalities, value_order):
         """Constructor for decision tree learner
@@ -36,11 +37,34 @@ class DT_learner():
         self.m_ = len(instances)
         self.n_ = len(norminalities) - 1
 
+    def set_class_priority(self, instances):
+        "Establish class priority: first in list has highest priority"
+
+        self.class_priority = []
+        for instance in instances:
+            label = instance[-1]
+            if label not in self.class_priority:
+                self.class_priority.append(label)
+
     def make_subtree(self, instances):
         """Return a decision sub-tree
         """
 
         split_criteria = determine_split_candidates(instances)
+
+        # Stop criterion 1: all classes are same
+        assert len(instances) > 0
+        all_classes_same = all([instance[-1] == instances[0][-1]
+            for instance in instances])
+
+        # Stop criterion 2: less than some min no. of instances
+        few_instances = len(instances) < self.min_instances
+
+        # Stop criterion 3: no feature has positive information gain
+        none_have_info_gain = False  # TODO implement this
+
+        # Stop criterion 4: no more features to split on
+        no_remaining_features = len(features_remaining) == 0
     
     def determine_split_candidates(self, instances, features_remaining):
         """Return a list of split candidates.
