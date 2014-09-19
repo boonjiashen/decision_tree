@@ -5,6 +5,19 @@
 import arff  # ARFF module
 #import argparse
 import optparse
+import math
+
+def get_entropy(items):
+    "Calculate the entropy of a list of items"
+
+    item_set = set(items)  # Get list of unique items
+
+    entropy = 0
+    for unique_item in item_set:
+        probability = 1. * items.count(unique_item) / len(items)
+        entropy = entropy - probability * math.log(probability, 2)
+
+    return entropy
 
 class DT_learner():
 
