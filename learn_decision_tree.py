@@ -15,7 +15,7 @@ class DT_learner():
     m_ = 0  # Number of training instances
     n_ = 0  # Number of features
     min_instances = 0  # Min no. of instances at a node that allows splits
-    class_priority = None  # left most class gets priority in tie-breakers
+    priority_class = None  # class that wins in a tie-breaker
 
     def __init__(self, instances, norminalities, value_order):
         """Constructor for decision tree learner
@@ -37,14 +37,11 @@ class DT_learner():
         self.m_ = len(instances)
         self.n_ = len(norminalities) - 1
 
-    def set_class_priority(self, instances):
+    def set_priority_class(self, instances):
         "Establish class priority: first in list has highest priority"
 
-        self.class_priority = []
-        for instance in instances:
-            label = instance[-1]
-            if label not in self.class_priority:
-                self.class_priority.append(label)
+        assert len(instances) > 0
+        self.priority_class = instances[0][-1]
 
     def make_subtree(self, instances):
         """Return a decision sub-tree
