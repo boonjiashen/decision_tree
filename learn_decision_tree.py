@@ -57,12 +57,18 @@ class DT_learner():
         for fi in range(self.n_):
             if fi not in features_remaining:
                 continue
+
+            # Get candidates according to norminality of this feature
             norminal = self.norminalities[fi]
             if norminal:
-                split_candidate = (fi, None)
+                # Norminal features only have one candidate
+                curr_candidates = [(fi, None)]
             else:
-                #TODO implement this
-                pass
+                # Numerical features may have more than one candidate
+                curr_candidates = determine_candidate_numeric_splits(
+                        instances, fi)
+
+            split_candidates.extend(curr_candidates)
 
     def determine_candidate_numeric_splits(self, instances, feature_ind):
         """Return a list of split candidates.
