@@ -42,19 +42,28 @@ class DT_learner():
 
         split_criteria = determine_split_candidates(instances)
     
-    def determine_split_candidates(self, instances):
+    def determine_split_candidates(self, instances, features_remaining):
         """Return a list of split candidates.
         
         Each split candidate represents a decision in a DT node, and is a
-        length-k list of functions, where k is the number of branches in the
-        node. Each function takes as input an instance and returns a boolean.
+        2-ple.
+        The first element is the index of the feature (between 0 and n_-1
+        inclusive). If the feature is nominal, the second element is None,
+        otherwise the second element is the threshold of the numeric feature.
         """
 
         # Iterate over all features
+        split_candidates = []
         for fi in range(n_):
+            if fi not in features_remaining:
+                continue
             norminal = norminalities[fi]
             if norminal:
+                split_candidate = (fi, None)
+            else:
+                #TODO implement this
                 pass
+
 
 # Parse arguments
 parser = optparse.OptionParser()
