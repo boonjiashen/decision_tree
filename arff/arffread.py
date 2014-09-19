@@ -5,7 +5,7 @@ import itertools
 
 import numpy as np
 
-from scipy.io.arff.utils import partial
+from utils import partial
 
 """A module to read arff files."""
 
