@@ -3,6 +3,7 @@
 # m is the number of training instances
 
 import arff  # ARFF module
+import argparse
 
 class DT_learner():
 
@@ -54,8 +55,14 @@ class DT_learner():
             if norminal:
                 pass
 
+# Parse arguments
+parser = argparse.ArgumentParser(
+        description='Train a decision tree and make predictions')
+parser.add_argument('train_file', help='file of training data')
+args = parser.parse_args()
+
 # Name of ARFF file
-filename = "../data/heart_train.arff"
+filename = args.train_file
 
 # Load ARFF file
 data, metadata = arff.loadarff(filename)
