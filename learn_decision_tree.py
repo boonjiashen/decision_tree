@@ -63,6 +63,21 @@ class DT_learner():
         assert len(instances) > 0
         self.priority_class = instances[0][-1]
 
+    def get_info_gain(self, instances, split_criterion):
+        """Return the information gained from knowing a split criterion
+        """
+
+        # Get entropy of instances before knowing split criterion
+        labels = [instance[-1] for instance in instances]
+        noncond_entropy = get_entropy(labels)
+
+        # Get entropy of instances after knowing split criterion
+        cond_entropy = self.get_conditional_entropy(instances, split_criterion)
+
+        info_gain = noncond_entropy - cond_entropy
+
+        return info_gain
+
     def get_conditional_entropy(self, instances, split_criterion):
         """Return the entropy of a set of instances conditioned on
         a split criterion.
@@ -239,4 +254,6 @@ subset = classifier.instances[:5]
 
 print 'subset is'
 for instance in subset: print instance
-classifier.get_conditional_entropy(subset, (1, None))
+split = (1, None)
+print 'cond entropy is', classifier.get_conditional_entropy(subset, split)
+print 'info gain is', classifier.get_info_gain(subset, split)
