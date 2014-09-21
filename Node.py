@@ -9,3 +9,9 @@ class Node(object):
 
     def add_child(self, child_node):
         self.children.append(child_node)
+
+    def print_node(self, level=0):
+        "Print the tree structure"
+        print level * '| ' + str(self.data)
+        for child in self.children:
+            child.print_node(level + 1)
