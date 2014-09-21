@@ -60,6 +60,9 @@ class DT_learner():
         assert len(self.value_enumerations) == self.n + 1
         assert len(self.norminalities) == self.n + 1
 
+        # Assume class label is norminal (not 0/1, -1/1, etc)
+        assert self.norminalities[-1]
+
     def set_priority_class(self, instances):
         "Establish class priority: first in list has highest priority"
 
