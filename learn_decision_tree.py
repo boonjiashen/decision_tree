@@ -6,6 +6,7 @@ import arff  # ARFF module
 #import argparse
 import optparse
 import math
+import Node
 
 def get_entropy(items):
     "Calculate the entropy of a list of items"
@@ -23,13 +24,15 @@ class DT_learner():
     """Decision tree learner for a binary class.
     """
 
-    instances_ = None
-    norminalities_ = None
-    value_enumeration_ = None
-    tree_ = None  # Decision tree
+    instances = None
+    norminalities = None
+    value_enumerations = None
+    tree = None  # Decision tree
     m = 0  # Number of training instances
     n = 0  # Number of features
-    min_instances = 0  # Min no. of instances at a node that allows splits
+
+    # TODO make min_instances variable
+    min_instances = 5  # Min no. of instances at a node that allows splits
     priority_class = None  # class that wins in a tie-breaker
 
     def __init__(self, instances, norminalities, value_enumerations):
@@ -153,25 +156,74 @@ class DT_learner():
         return branch_index
 
 
-    def make_subtree(self, instances):
+    def make_subtree(self, instances, features_remaining=None):
         """Return a decision sub-tree
+
+        If features_remaining is None, we start with all features
         """
 
-        split_criteria = self.determine_split_candidates(instances)
+        # By default we start with all features remaining
+        if features_remaining is None:
+            features_remaining = range(self.n)
+
+        split_criteria = self.determine_split_candidates(
+                instances, features_remaining)
 
         # Stop criterion 1: all classes are same
-        assert len(instances) > 0
-        all_classes_same = all([instance[-1] == instances[0][-1]
-            for instance in instances])
+        all_classes_same = (
+                all([instance[-1] == instances[0][-1] for instance in instances])
+                if len(instances) > 0
+                else True)
 
         # Stop criterion 2: less than some min no. of instances
         few_instances = len(instances) < self.min_instances
 
         # Stop criterion 3: no feature has positive information gain
-        none_have_info_gain = False  # TODO implement this
+        info_gains = [
+                self.get_info_gain(instances, candidate)
+                for candidate in split_criteria]
+        none_have_info_gain = all(
+                [info_gain <= 0 for info_gain in info_gains])
 
         # Stop criterion 4: no more features to split on
         no_remaining_features = len(features_remaining) == 0
+
+        # Check if any of the stopping criteria is met
+        stop_splitting = all_classes_same or  \
+                few_instances or  \
+                none_have_info_gain or  \
+                no_remaining_features
+        if stop_splitting:
+
+            # Compute the majority class
+            unique_labels = self.value_enumerations[-1]
+            counts = [sum([instance[-1] == label for instance in instances])
+                for label in unique_labels]
+            node_value = (unique_labels[counts.index(max(counts))]
+                    if counts[0] == counts[1]
+                    else unique_labels[0])
+
+            assert sum(counts) == len(instances)
+
+            # Return child-less node with class as the node value
+            return Node.Node(node_value)
+
+        else:
+
+            # Split uses the criterion that gives the highest info gain
+            best_criterion = split_criteria[info_gains.index(max(info_gains))]
+            partitions = self.partition_instances(instances, best_criterion)
+
+            # Recursively split each partition
+            node = Node.Node(best_criterion)
+            features_remaining = [feature
+                    for feature in features_remaining
+                    if feature != best_criterion[0]]
+            for partition in partitions:
+                subtree = self.make_subtree(partition, features_remaining)
+                node.children.append(subtree)
+
+            return node
     
     def determine_split_candidates(self, instances, features_remaining):
         """Return a list of split candidates.
@@ -269,3 +321,4 @@ for instance in subset: print instance
 split = (1, None)
 print 'cond entropy is', classifier.get_conditional_entropy(subset, split)
 print 'info gain is', classifier.get_info_gain(subset, split)
+classifier.make_subtree(subset)
