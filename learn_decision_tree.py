@@ -158,6 +158,17 @@ class DT_learner():
 
         return branch_index
 
+    def fit(self):
+        """Fit decision tree to given instances.
+
+        instances -
+            instances to fit decision tree with (default - self.instances)
+        """
+
+        if instances is None:
+            instancesj = self.instances
+
+        self.tree = self.make_subtree(instances)
 
     def make_subtree(self, instances, features_remaining=None):
         """Return a decision sub-tree
