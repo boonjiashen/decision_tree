@@ -196,10 +196,12 @@ class DT_learner():
                 curr_candidates = [(fi, None)]
             else:
                 # Numerical features may have more than one candidate
-                curr_candidates = determine_candidate_numeric_splits(
+                curr_candidates = self.determine_candidate_numeric_splits(
                         instances, fi)
 
             split_candidates.extend(curr_candidates)
+
+        return split_candidates
 
     def determine_candidate_numeric_splits(self, instances, feature_ind):
         """Return a list of split candidates.
