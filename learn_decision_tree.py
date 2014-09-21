@@ -78,12 +78,9 @@ class DT_learner():
 
         return info_gain
 
-    def get_conditional_entropy(self, instances, split_criterion):
-        """Return the entropy of a set of instances conditioned on
-        a split criterion.
-
-        See determine_split_candidates() for the specification for a split
-        criterion.
+    def partition_instances(self, instances, split_criterion):
+        """Return a list of partitions that split instances with some
+        criterion
         """
 
         # Partition instances into their rightful branches down the node
@@ -98,6 +95,19 @@ class DT_learner():
 
             # Add instance to its rightful partition
             partitions[partition_index].append(instance)
+
+        return partitions
+
+    def get_conditional_entropy(self, instances, split_criterion):
+        """Return the entropy of a set of instances conditioned on
+        a split criterion.
+
+        See determine_split_candidates() for the specification for a split
+        criterion.
+        """
+
+        # Partition instances into their rightful branches down the node
+        partitions = self.partition_instances(instances, split_criterion)
 
         # Calculate conditional entropy
         cond_entropy = 0
