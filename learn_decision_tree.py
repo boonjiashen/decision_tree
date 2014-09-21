@@ -63,6 +63,42 @@ class DT_learner():
         assert len(instances) > 0
         self.priority_class = instances[0][-1]
 
+    def get_conditional_entropy(self, instances, split_criterion):
+        """Return the entropy of a set of instances conditioned on
+        a split criterion.
+
+        See determine_split_candidates() for the specification for a split
+        criterion.
+        """
+
+        # Partition instances into their rightful branches down the node
+        partitions = []
+        for instance in instances:
+            partition_index = self.look_up_branch_index(
+                    instance, split_criterion)
+
+            # Expand number of partitions as necessary
+            while len(partitions) < partition_index + 1:
+                partitions.append([])
+
+            # Add instance to its rightful partition
+            partitions[partition_index].append(instance)
+
+        # Calculate conditional entropy
+        cond_entropy = 0
+        for partition in partitions:
+
+            # Probability of an instance being in this partition
+            probability = 1. * len(partition) / len(instances)
+
+            # Entropy of this partition
+            labels = [instance[-1] for instance in partition]
+            entropy = get_entropy(labels)
+
+            cond_entropy = cond_entropy + probability * entropy
+
+        return cond_entropy
+
     def look_up_branch_index(self, instance, split_criterion):
         """Return the index of a branch that an instances traverses at a node
         represented by split_criterion"""
@@ -96,7 +132,7 @@ class DT_learner():
         """Return a decision sub-tree
         """
 
-        split_criteria = determine_split_candidates(instances)
+        split_criteria = self.determine_split_candidates(instances)
 
         # Stop criterion 1: all classes are same
         assert len(instances) > 0
@@ -197,5 +233,10 @@ for name in metadata.names():
 # Instantiate tree learner
 classifier = DT_learner(instances, norminalities, value_enumerations)
 import random
+random.seed(1)
 random.shuffle(classifier.instances)
-subset = classifier.instances[:10]
+subset = classifier.instances[:5]
+
+print 'subset is'
+for instance in subset: print instance
+classifier.get_conditional_entropy(subset, (1, None))
