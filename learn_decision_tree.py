@@ -32,7 +32,7 @@ class DT_learner():
     min_instances = 0  # Min no. of instances at a node that allows splits
     priority_class = None  # class that wins in a tie-breaker
 
-    def __init__(self, instances, norminalities, value_enumeration):
+    def __init__(self, instances, norminalities, value_enumerations):
         """Constructor for decision tree learner
 
         instances - 
@@ -42,19 +42,19 @@ class DT_learner():
             n+1 length list of booleans.
             norminalities[i] answers whether feature i is norminal (numeric
             otherwise)
-        value_enumeration -
+        value_enumerations -
             n+1 length list of tuples.
             If norminalities[i] is True, value_enumeration[i] is a tuple of the
             possible norminal values of feature[i].
         """
         self.instances = instances
         self.norminalities = norminalities
-        self.value_enumeration = value_enumeration
+        self.value_enumerations = value_enumerations
 
         self.m = len(instances)
         self.n = len(instances[0]) - 1
 
-        assert len(self.value_enumeration) == self.n + 1
+        assert len(self.value_enumerations) == self.n + 1
         assert len(self.norminalities) == self.n + 1
 
     def set_priority_class(self, instances):
@@ -62,6 +62,35 @@ class DT_learner():
 
         assert len(instances) > 0
         self.priority_class = instances[0][-1]
+
+    def look_up_branch_index(self, instance, split_criterion):
+        """Return the index of a branch that an instances traverses at a node
+        represented by split_criterion"""
+
+        feature_index, threshold = split_criterion
+        norminal = self.norminalities[feature_index]  # Is feature norminal?
+
+        # Value of feature of this instance
+        feature_value = instance[feature_index]
+
+        if norminal:
+            # Branches of norminal features are ordered based on
+            # value_enumerations
+            # e.g. if the enumeration is ['red', 'green', blue'] and the value
+            # is 'green', the branch index is 1
+            branch_index =  \
+                self.value_enumerations[feature_index].index(feature_value)
+        else:
+            # For numeric features:
+            #The left branch of such a split should represent values that are
+            #less than or equal to the threshold.
+            if feature_value <= threshold:
+                branch_index = 0
+            else:
+                branch_index = 1
+
+        return branch_index
+
 
     def make_subtree(self, instances):
         """Return a decision sub-tree
