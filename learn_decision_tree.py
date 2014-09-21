@@ -20,35 +20,42 @@ def get_entropy(items):
     return entropy
 
 class DT_learner():
+    """Decision tree learner for a binary class.
+    """
 
     instances_ = None
     norminalities_ = None
-    value_order_ = None
+    value_enumeration_ = None
     tree_ = None  # Decision tree
-    m_ = 0  # Number of training instances
-    n_ = 0  # Number of features
+    m = 0  # Number of training instances
+    n = 0  # Number of features
     min_instances = 0  # Min no. of instances at a node that allows splits
     priority_class = None  # class that wins in a tie-breaker
 
-    def __init__(self, instances, norminalities, value_order):
+    def __init__(self, instances, norminalities, value_enumeration):
         """Constructor for decision tree learner
 
-        instances - a m x n+1 list of lists
+        instances - 
+            a m x n+1 list of lists
+            The last column is the class of the instances
         norminalities -
             n+1 length list of booleans.
             norminalities[i] answers whether feature i is norminal (numeric
             otherwise)
-        value_order -
+        value_enumeration -
             n+1 length list of tuples.
-            If norminalities[i] is True, value_order[i] is a tuple of the
+            If norminalities[i] is True, value_enumeration[i] is a tuple of the
             possible norminal values of feature[i].
         """
-        self.instances_ = instances
-        self.norminalities_ = norminalities
-        self.value_order_ = value_order
+        self.instances = instances
+        self.norminalities = norminalities
+        self.value_enumeration = value_enumeration
 
-        self.m_ = len(instances)
-        self.n_ = len(norminalities) - 1
+        self.m = len(instances)
+        self.n = len(instances[0]) - 1
+
+        assert len(self.value_enumeration) == self.n + 1
+        assert len(self.norminalities) == self.n + 1
 
     def set_priority_class(self, instances):
         "Establish class priority: first in list has highest priority"
@@ -88,7 +95,7 @@ class DT_learner():
 
         # Iterate over all features
         split_candidates = []
-        for fi in range(self.n_):
+        for fi in range(self.n):
             if fi not in features_remaining:
                 continue
 
@@ -112,7 +119,7 @@ class DT_learner():
         # TODO implement the full version of this function
 
         # Check that feature is numeric
-        assert not self.norminalities_[feature_ind]
+        assert not self.norminalities[feature_ind]
 
         # Sort instances by feature
         instances.sort(key=lambda x: x[feature_ind])
@@ -161,5 +168,5 @@ for name in metadata.names():
 # Instantiate tree learner
 classifier = DT_learner(instances, norminalities, value_enumerations)
 import random
-random.shuffle(classifier.instances_)
-subset = classifier.instances_[:10]
+random.shuffle(classifier.instances)
+subset = classifier.instances[:10]
