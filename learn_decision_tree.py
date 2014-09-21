@@ -294,6 +294,28 @@ class DT_learner():
 
         return candidates
 
+    def predict(self, instance):
+        """Predict the class of an unlabelled instance.
+
+        instance -
+            length-n list
+        """
+        assert len(instance) >= self.n
+        curr_node = self.tree
+
+        # Go down the tree as long as current node has child(ren)
+        while curr_node.children:
+
+            # Split decision is stored in node
+            split_criterion = curr_node.data
+
+            # We select the appropriate branch to traverse
+            branch_index = self.look_up_branch_index(instance, split_criterion)
+            curr_node = curr_node.children[branch_index]
+
+        # Predicted label is the value stored in the leaf node
+        return curr_node.data
+
 # Parse arguments
 parser = optparse.OptionParser()
 options, args = parser.parse_args()
@@ -335,4 +357,5 @@ for instance in subset: print instance
 split = (1, None)
 print 'cond entropy is', classifier.get_conditional_entropy(subset, split)
 print 'info gain is', classifier.get_info_gain(subset, split)
-classifier.make_subtree(subset)
+classifier.fit()
+classifier.tree.print_node()
