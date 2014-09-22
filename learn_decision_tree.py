@@ -72,6 +72,10 @@ class DT_learner():
         """Return the information gained from knowing a split criterion
         """
 
+        # Return zero information gain if there are no instances
+        if not instances:
+            return 0
+
         # Get entropy of instances before knowing split criterion
         labels = [instance[-1] for instance in instances]
         noncond_entropy = get_entropy(labels)
@@ -88,15 +92,18 @@ class DT_learner():
         criterion
         """
 
+        # Initialize partitions as a list of empty lists
+        feature_ind, threshold = split_criterion
+        norminal = self.norminalities[feature_ind]
+        n_partitions = (len(self.value_enumerations[feature_ind])  \
+                if norminal
+                else 2)
+        partitions = [list() for i in range(n_partitions)]
+
         # Partition instances into their rightful branches down the node
-        partitions = []
         for instance in instances:
             partition_index = self.look_up_branch_index(
                     instance, split_criterion)
-
-            # Expand number of partitions as necessary
-            while len(partitions) < partition_index + 1:
-                partitions.append([])
 
             # Add instance to its rightful partition
             partitions[partition_index].append(instance)
@@ -157,7 +164,7 @@ class DT_learner():
 
         return branch_index
 
-    def fit(self):
+    def fit(self, instances=None):
         """Fit decision tree to given instances.
 
         instances -
@@ -165,7 +172,7 @@ class DT_learner():
         """
 
         if instances is None:
-            instancesj = self.instances
+            instances = self.instances
 
         self.tree = self.make_subtree(instances)
 
@@ -376,36 +383,52 @@ data_list = [list_ for list_ in data]
 # The additional 1 is the class feature type
 norminalities = [type_ == 'nominal' for type_ in metadata.types()]
 
-# Get a length m list, each element is of length n+1 (features + label)
-instances = data_list
-
 # enumeration i is a tuple of all possible values of feature i
 value_enumerations = []
 for name in metadata.names():
     norminality, value_enumeration = metadata[name]
     value_enumerations.append(value_enumeration)
 
-#################### Learn decision tree #################### 
+import random
+random.seed(1)
 
-# Instantiate tree learner
-classifier = DT_learner(instances, norminalities, value_enumerations,
-        min_instances)
+# Number of samples taken for each sample size
+n_samples_per_sample_size = 10
 
-#import random
-#random.seed(1)
-#random.shuffle(classifier.instances)
-#subset = classifier.instances[:5]
+# Percentage of training set used for training
+sample_percentage = 5
+sample_size = int(.01 * sample_percentage * len(data_list))
 
-#print 'subset is'
-#for instance in subset: print instance
-#split = (1, None)
-#print 'cond entropy is', classifier.get_conditional_entropy(subset, split)
-#print 'info gain is', classifier.get_info_gain(subset, split)
+# Average accuracy of tree for this given sample percentage
+ave_accuracy = 0
+for ki in range(n_samples_per_sample_size):
 
-# Fit classifer
-classifier.fit()
+    # Get a length m list, each element is of length n+1 (features + label)
+    random.shuffle(data_list)
+    sample = data_list[:sample_size]
 
-# Print decision tree
-classifier.print_tree(metadata.names())
+    # Instantiate tree learner
+    classifier = DT_learner(sample, norminalities, value_enumerations,
+            min_instances)
 
-#################### Test decision tree #################### 
+    # Fit classifer
+    classifier.fit()
+
+    ## Print decision tree
+    #classifier.print_tree(metadata.names())
+
+    # Get accuracy of this fit
+    testset, metadata = arff.loadarff(test_filename)
+    testset = [list_ for list_ in testset]
+    n_correct = sum(
+            [classifier.predict(instance) == instance[-1]
+            for instance in testset])
+    accuracy = 1. * n_correct / len(testset)
+
+    # Update average accuracy for this training set size
+    ave_accuracy = ave_accuracy + accuracy / n_samples_per_sample_size
+
+    print 'accuracy is %.5f%%' % (accuracy * 100)
+
+print 'average accurancy for %.0f%% of training set is %.1f%%' %  \
+        (sample_percentage, 100 * ave_accuracy)
