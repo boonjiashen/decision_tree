@@ -24,18 +24,14 @@ class DT_learner():
     """Decision tree learner for a binary class.
     """
 
-    instances = None
-    norminalities = None
-    value_enumerations = None
     tree = None  # Decision tree
     m = 0  # Number of training instances
     n = 0  # Number of features
 
-    # TODO make min_instances variable
-    min_instances = 2  # Min no. of instances at a node that allows splits
     priority_class = None  # class that wins in a tie-breaker
 
-    def __init__(self, instances, norminalities, value_enumerations):
+    def __init__(self, instances, norminalities, value_enumerations,
+            min_instances):
         """Constructor for decision tree learner
 
         instances - 
@@ -56,6 +52,9 @@ class DT_learner():
 
         self.m = len(instances)
         self.n = len(instances[0]) - 1
+
+        # Min no. of instances at a node that allows splits
+        self.min_instances = min_instances
 
         assert len(self.value_enumerations) == self.n + 1
         assert len(self.norminalities) == self.n + 1
@@ -355,10 +354,13 @@ class DT_learner():
 # Parse arguments
 parser = optparse.OptionParser()
 options, args = parser.parse_args()
-assert len(args) == 1
+assert len(args) == 2
 
-# Name of ARFF file is the first positional argument
-filename = args[0]
+# First positional argument: name of ARFF file
+# Second positional argument: number of minimum instances to allow a node to
+# split
+filename, min_instances = args
+min_instances = int(min_instances)  # Cast to integer
 
 # Load ARFF file
 data, metadata = arff.loadarff(filename)
@@ -382,7 +384,8 @@ for name in metadata.names():
     value_enumerations.append(value_enumeration)
 
 # Instantiate tree learner
-classifier = DT_learner(instances, norminalities, value_enumerations)
+classifier = DT_learner(instances, norminalities, value_enumerations,
+        min_instances)
 
 #import random
 #random.seed(1)
