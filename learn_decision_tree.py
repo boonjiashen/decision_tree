@@ -170,18 +170,11 @@ class DT_learner():
 
         self.tree = self.make_subtree(instances)
 
-    def make_subtree(self, instances, features_remaining=None):
+    def make_subtree(self, instances):
         """Return a decision sub-tree
-
-        If features_remaining is None, we start with all features
         """
 
-        # By default we start with all features remaining
-        if features_remaining is None:
-            features_remaining = range(self.n)
-
-        split_criteria = self.determine_split_candidates(
-                instances, features_remaining)
+        split_criteria = self.determine_split_candidates(instances)
 
         # Stop criterion 1: all classes are same
         all_classes_same = (
@@ -200,7 +193,8 @@ class DT_learner():
                 [info_gain <= 0 for info_gain in info_gains])
 
         # Stop criterion 4: no more features to split on
-        no_remaining_features = len(features_remaining) == 0
+        no_remaining_features = False
+        #no_remaining_features = len(features_remaining) == 0
 
         # Check if any of the stopping criteria is met
         stop_splitting = all_classes_same or  \
@@ -230,16 +224,13 @@ class DT_learner():
 
             # Recursively split each partition
             node = Node.Node(best_criterion)
-            features_remaining = [feature
-                    for feature in features_remaining
-                    if feature != best_criterion[0]]
             for partition in partitions:
-                subtree = self.make_subtree(partition, features_remaining)
+                subtree = self.make_subtree(partition)
                 node.children.append(subtree)
 
             return node
     
-    def determine_split_candidates(self, instances, features_remaining):
+    def determine_split_candidates(self, instances):
         """Return a list of split candidates.
         
         Each split candidate represents a decision in a DT node, and is a
@@ -252,8 +243,6 @@ class DT_learner():
         # Iterate over all features
         split_candidates = []
         for fi in range(self.n):
-            if fi not in features_remaining:
-                continue
 
             # Get candidates according to norminality of this feature
             norminal = self.norminalities[fi]
