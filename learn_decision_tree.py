@@ -354,16 +354,18 @@ class DT_learner():
 # Parse arguments
 parser = optparse.OptionParser()
 options, args = parser.parse_args()
-assert len(args) == 2
+assert len(args) == 3
 
 # First positional argument: name of ARFF file
 # Second positional argument: number of minimum instances to allow a node to
 # split
-filename, min_instances = args
+train_filename, test_filename, min_instances = args
 min_instances = int(min_instances)  # Cast to integer
 
+#################### Declare inputs for learning #################### 
+
 # Load ARFF file
-data, metadata = arff.loadarff(filename)
+data, metadata = arff.loadarff(train_filename)
 
 # Change data to Python native list of lists
 #data_list = [[x for x in list_] for list_ in data]
@@ -382,6 +384,8 @@ value_enumerations = []
 for name in metadata.names():
     norminality, value_enumeration = metadata[name]
     value_enumerations.append(value_enumeration)
+
+#################### Learn decision tree #################### 
 
 # Instantiate tree learner
 classifier = DT_learner(instances, norminalities, value_enumerations,
@@ -403,3 +407,5 @@ classifier.fit()
 
 # Print decision tree
 classifier.print_tree(metadata.names())
+
+#################### Test decision tree #################### 
