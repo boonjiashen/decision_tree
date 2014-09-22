@@ -32,7 +32,7 @@ class DT_learner():
     n = 0  # Number of features
 
     # TODO make min_instances variable
-    min_instances = 5  # Min no. of instances at a node that allows splits
+    min_instances = 2  # Min no. of instances at a node that allows splits
     priority_class = None  # class that wins in a tie-breaker
 
     def __init__(self, instances, norminalities, value_enumerations):
@@ -214,7 +214,7 @@ class DT_learner():
             counts = [sum([instance[-1] == label for instance in instances])
                 for label in unique_labels]
             node_value = (unique_labels[counts.index(max(counts))]
-                    if counts[0] == counts[1]
+                    if counts[0] != counts[1]
                     else unique_labels[0])
 
             assert sum(counts) == len(instances)
@@ -316,6 +316,44 @@ class DT_learner():
         # Predicted label is the value stored in the leaf node
         return curr_node.data
 
+    def print_tree(self, feature_names, node=None, level=0):
+        """Recursively print a tree (starting from the root by default)
+        """
+
+        if node is None:
+            node = self.tree
+
+        node_feature_index, threshold = node.data
+        for child_ind in range(len(node.children)):
+
+            child = node.children[child_ind]
+
+            # Description of current node, e.g. "color"
+            node_str = feature_names[node_feature_index]
+
+            # Description of branch, e.g. " = red" if norminal, " > 10" if
+            # numeric
+            norminal = self.norminalities[node_feature_index]
+            if norminal:
+                feature_value =  \
+                        self.value_enumerations[node_feature_index][child_ind]
+                branch_str = ' = ' + feature_value
+            else:
+                branch_str = [' <= ', ' > '][child_ind] + '%.6f' % threshold
+
+            # Determine whether child is a leaf node
+            child_is_leaf = not child.children
+
+            # Print status of this child, including the prediction if node is a
+            # leaf
+            prediction_str = ': ' + child.data if child_is_leaf else ''
+            print (level * '|       ' + "%s%s%s") %  \
+                    (node_str, branch_str, prediction_str)
+
+            # Recursively print child as subtree
+            if not child_is_leaf:
+                self.print_tree(feature_names, child, level + 1)
+
 # Parse arguments
 parser = optparse.OptionParser()
 options, args = parser.parse_args()
@@ -347,15 +385,20 @@ for name in metadata.names():
 
 # Instantiate tree learner
 classifier = DT_learner(instances, norminalities, value_enumerations)
-import random
-random.seed(1)
-random.shuffle(classifier.instances)
-subset = classifier.instances[:5]
 
-print 'subset is'
-for instance in subset: print instance
-split = (1, None)
-print 'cond entropy is', classifier.get_conditional_entropy(subset, split)
-print 'info gain is', classifier.get_info_gain(subset, split)
+#import random
+#random.seed(1)
+#random.shuffle(classifier.instances)
+#subset = classifier.instances[:5]
+
+#print 'subset is'
+#for instance in subset: print instance
+#split = (1, None)
+#print 'cond entropy is', classifier.get_conditional_entropy(subset, split)
+#print 'info gain is', classifier.get_info_gain(subset, split)
+
+# Fit classifer
 classifier.fit()
-classifier.tree.print_node()
+
+# Print decision tree
+classifier.print_tree(metadata.names())
