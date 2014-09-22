@@ -274,22 +274,31 @@ class DT_learner():
 
         See determine_split_candidates() for representation
         """
-        # TODO implement the full version of this function
-
         # Check that feature is numeric
         assert not self.norminalities[feature_ind]
 
-        # Sort instances by feature
-        instances.sort(key=lambda x: x[feature_ind])
+        # Get list of unique feature values in ascending order
+        unique_feature_values = list(set([x[feature_ind] for x in instances]))
+        unique_feature_values.sort()
 
-        # Look for mid-point where instances[i] and
-        # instances[i+1] have different classes
+        # Partition instances into those with the same feature value
+        partitions = [list() for i in range(len(unique_feature_values))]
+        for instance in instances:
+            feature_value = instance[feature_ind]
+            partition_index = unique_feature_values.index(feature_value)
+            partitions[partition_index].append(instance)
+
+        # Candidate splits are mid-points of partitions with different class
+        # labels
         candidates = []
-        for i in range(len(instances) - 1):
-            if instances[i][-1] != instances[i+1][-1]:
+        for p1, p2 in zip(partitions[:-1], partitions[1:]):
+            label_set1 = set([instance[-1] for instance in p1])
+            label_set2 = set([instance[-1] for instance in p2])
+
+            if label_set1.symmetric_difference(label_set2):
                 midpoint = (
-                        instances[i][feature_ind] +
-                        instances[i+1][feature_ind]) / 2
+                        p1[0][feature_ind] +
+                        p2[0][feature_ind]) / 2
                 candidates.append((feature_ind, midpoint, ))
 
         return candidates
