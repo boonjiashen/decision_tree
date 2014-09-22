@@ -389,6 +389,8 @@ for name in metadata.names():
     norminality, value_enumeration = metadata[name]
     value_enumerations.append(value_enumeration)
 
+#################### Plot learning curves #################### 
+
 import random
 random.seed(1)
 
@@ -396,39 +398,45 @@ random.seed(1)
 n_samples_per_sample_size = 10
 
 # Percentage of training set used for training
-sample_percentage = 5
-sample_size = int(.01 * sample_percentage * len(data_list))
+sample_percentages = [5, 10, 20, 50, 100]
 
-# Average accuracy of tree for this given sample percentage
-ave_accuracy = 0
-for ki in range(n_samples_per_sample_size):
+for sample_percentage in sample_percentages:
 
-    # Get a length m list, each element is of length n+1 (features + label)
-    random.shuffle(data_list)
-    sample = data_list[:sample_size]
+    # Size of sample given the sample percentage
+    sample_size = int(sample_percentage / 100. * len(data_list))
 
-    # Instantiate tree learner
-    classifier = DT_learner(sample, norminalities, value_enumerations,
-            min_instances)
+    # Accuracies of tree for this given sample percentage
+    accuracies = []
+    for ki in range(n_samples_per_sample_size):
 
-    # Fit classifer
-    classifier.fit()
+        # Get a length m list, each element is of length n+1 (features + label)
+        random.shuffle(data_list)
+        sample = data_list[:sample_size]
 
-    ## Print decision tree
-    #classifier.print_tree(metadata.names())
+        # Instantiate tree learner
+        classifier = DT_learner(sample, norminalities, value_enumerations,
+                min_instances)
 
-    # Get accuracy of this fit
-    testset, metadata = arff.loadarff(test_filename)
-    testset = [list_ for list_ in testset]
-    n_correct = sum(
-            [classifier.predict(instance) == instance[-1]
-            for instance in testset])
-    accuracy = 1. * n_correct / len(testset)
+        # Fit classifer
+        classifier.fit()
 
-    # Update average accuracy for this training set size
-    ave_accuracy = ave_accuracy + accuracy / n_samples_per_sample_size
+        # Get accuracy of this fit
+        testset, metadata = arff.loadarff(test_filename)
+        testset = [list_ for list_ in testset]
+        n_correct = sum(
+                [classifier.predict(instance) == instance[-1]
+                for instance in testset])
+        accuracy = 1. * n_correct / len(testset)
 
-    print 'accuracy is %.5f%%' % (accuracy * 100)
+        # Update list of accuracies for this point on learning curve
+        accuracies.append(accuracy)
 
-print 'average accurancy for %.0f%% of training set is %.1f%%' %  \
-        (sample_percentage, 100 * ave_accuracy)
+    # Calculate metrices for accuracy
+    ave_accuracy = sum(accuracies) / len(accuracies)
+    min_accuracy = min(accuracies)
+    max_accuracy = max(accuracies)
+
+    print 'For %.0f%% of training set' % (sample_percentage)
+    print '\taverage accurancy is %.1f%%' % (100 * ave_accuracy)
+    print '\tmin is %.1f%%' % (100 * min_accuracy)
+    print '\tmax is %.1f%%' % (100 * max_accuracy)
