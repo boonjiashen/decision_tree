@@ -207,6 +207,7 @@ class DT_learner():
                 few_instances or  \
                 none_have_info_gain or  \
                 no_remaining_features
+
         if stop_splitting:
 
             # Compute the majority class
@@ -224,7 +225,11 @@ class DT_learner():
 
         else:
 
-            # Split uses the criterion that gives the highest info gain
+            # Split uses the criterion that gives the highest info gain.
+            # Note that since numeric split candidates are in ascending order
+            # of threshold values, in the case of a tie for same info gain,
+            # same feature but different threshold, the lower threshold
+            # candidate is chosen due to the nature of list.index()
             best_criterion = split_criteria[info_gains.index(max(info_gains))]
             partitions = self.partition_instances(instances, best_criterion)
 
@@ -265,7 +270,7 @@ class DT_learner():
         return split_candidates
 
     def determine_candidate_numeric_splits(self, instances, feature_ind):
-        """Return a list of split candidates.
+        """Return a list of split candidates in ascending order of threshold.
 
         See determine_split_candidates() for representation
         """
