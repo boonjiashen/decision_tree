@@ -106,10 +106,16 @@ for sample_percentage in sample_percentages:
 ############# Plot learning curves biatch #################### 
 
 plt.figure()
-plt.plot(sample_percentages, min_accuracies, label="minimum accuracy")
-plt.plot(sample_percentages, ave_accuracies, label="average accuracy", lw=2.)
-plt.plot(sample_percentages, max_accuracies, label="maximum accuracy")
 
+# Draw plots
+plt.plot(sample_percentages, max_accuracies, 'g', label="maximum accuracy")
+plt.plot(sample_percentages, max_accuracies, 'go')
+plt.plot(sample_percentages, ave_accuracies, 'b', label="average accuracy", lw=2.)
+plt.plot(sample_percentages, ave_accuracies, 'bo', lw=2.)
+plt.plot(sample_percentages, min_accuracies, 'r', label="minimum accuracy")
+plt.plot(sample_percentages, min_accuracies, 'ro')
+
+# Add text to plot
 plt.legend(loc="best")
 title = "Accuracy versus training set size\n" +  \
         "training data: " + train_filename +  "\n" +  \
@@ -119,8 +125,11 @@ plt.xlabel("Percentage of instances used in training set")
 plt.ylabel("Accuracy")
 
 # Change limits of plot
-# Origin is at (0, 0), upper limit of y-axis is 1
+# y axis limits are in multiples of y_granularity
 x1, x2, y1, y2 = plt.axis()
-plt.axis((0, x2, 0, 1))
+y_granularity = .2
+y1 = math.floor(y1 / y_granularity) * y_granularity
+y2 = math.ceil(y2 / y_granularity) * y_granularity
+plt.axis((0, x2, y1, y2))
 
 plt.show()
