@@ -1,6 +1,19 @@
 This project contains an implementation of a decision tree learner.
 
+The decision tree only classifies datasets with binary labels.
 
 Author
 ----------------------------------------
 Jia-Shen Boon <jiashen@gmail.com>
+
+
+Run
+----------------------------------------
+dt-learn expects datasets in the form of .arff files
+
+To run the learning and prediction script, run:
+>> dt-learn <train-set-file> <test-set-file> m
+
+where a node in the decision tree stops splitting when there are fewer than m
+instances in the training set at that node. (There are other stopping criteria
+as well)
