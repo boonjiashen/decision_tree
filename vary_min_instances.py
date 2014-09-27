@@ -1,6 +1,7 @@
-"""Implements a decision tree learner"""
-# n is the number of features per instance
-# m is the number of training instances
+"""Plot m against accuracy of a decision tree classifier.
+
+m is the minimum number of instances at a node during learning to allow the
+node to split further."""
 
 import arff  # ARFF module
 import random
