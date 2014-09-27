@@ -13,8 +13,9 @@ if __name__ == "__main__":
     options, args = parser.parse_args()
     assert len(args) == 3
 
-    # First positional argument: name of ARFF file
-    # Second positional argument: number of minimum instances to allow a node to
+    # First positional argument: name of training set file
+    # Second positional argument: name of test set file
+    # Third positional argument: number of minimum instances to allow a node to
     # split
     train_filename, test_filename, min_instances = args
     min_instances = int(min_instances)  # Cast to integer
@@ -39,54 +40,46 @@ if __name__ == "__main__":
         norminality, value_enumeration = metadata[name]
         value_enumerations.append(value_enumeration)
 
-    #################### Plot learning curves #################### 
+    #################### Learn decision tree #################### 
 
-    import random
-    random.seed(1)
+    training_set = data_list
 
-    # Number of samples taken for each sample size
-    n_samples_per_sample_size = 10
+    # Instantiate tree learner
+    classifier = DT_classifier.DT_classifier(training_set, norminalities,
+            value_enumerations, min_instances)
 
-    # Percentage of training set used for training
-    sample_percentages = [5, 10]
+    # Fit classifer
+    classifier.fit()
 
-    for sample_percentage in sample_percentages:
+    #################### Perform prediction on test set  #################### 
 
-        # Size of sample given the sample percentage
-        sample_size = int(sample_percentage / 100. * len(data_list))
+    # Get test set
+    testset, metadata = arff.loadarff(test_filename)
+    testset = [list_ for list_ in testset]
 
-        # Accuracies of tree for this given sample percentage
-        accuracies = []
-        for ki in range(n_samples_per_sample_size):
+    # Get predictions
+    predictions = [classifier.predict(instance) for instance in testset]
 
-            # Get a length m list, each element is of length n+1 (features + label)
-            random.shuffle(data_list)
-            sample = data_list[:sample_size]
+    #################### Print results  #################### 
 
-            # Instantiate tree learner
-            classifier = DT_classifier.DT_classifier(sample, norminalities, value_enumerations,
-                    min_instances)
+    print "TREE LEARNT FROM TRAINING SET"
+    print 40 * '-'
+    classifier.print_tree(metadata.names())
 
-            # Fit classifer
-            classifier.fit()
+    print '\n'
 
-            # Get accuracy of this fit
-            testset, metadata = arff.loadarff(test_filename)
-            testset = [list_ for list_ in testset]
-            n_correct = sum(
-                    [classifier.predict(instance) == instance[-1]
-                    for instance in testset])
-            accuracy = 1. * n_correct / len(testset)
+    print "PREDICTIONS FOR TEST SET INSTANCES (predicted & actual label)"
+    print 40 * '-'
+    actual_labels = [instance[-1] for instance in testset]
+    column_width = max([len(label) for label in actual_labels + predictions])
+    for predicted, actual in zip(predictions, actual_labels):
+        print  (2 * ('%' + str(column_width) + 's ')) % (predicted, actual)
 
-            # Update list of accuracies for this point on learning curve
-            accuracies.append(accuracy)
-
-        # Calculate metrices for accuracy
-        ave_accuracy = sum(accuracies) / len(accuracies)
-        min_accuracy = min(accuracies)
-        max_accuracy = max(accuracies)
-
-        print 'For %.0f%% of training set' % (sample_percentage)
-        print '\taverage accurancy is %.1f%%' % (100 * ave_accuracy)
-        print '\tmin is %.1f%%' % (100 * min_accuracy)
-        print '\tmax is %.1f%%' % (100 * max_accuracy)
+    # Print number of correct classifications and number of test instances
+    #"This should be followed by a line listing the number of correctly
+    #classified test instances, and the total number of instances in the test
+    #set".
+    n_correct_predictions = sum([predicted == actual
+        for predicted, actual in zip(predictions, actual_labels)])
+    print "Number of correct classifications = %i | test set size = %i" %  \
+            (n_correct_predictions, len(testset))
