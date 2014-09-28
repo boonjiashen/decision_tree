@@ -164,21 +164,31 @@ class DT_classifier():
 
         return branch_index
 
-    def fit(self, instances=None):
+    def fit(self, instances=None, verbose=False):
         """Fit decision tree to given instances.
 
         instances -
             instances to fit decision tree with (default - self.instances)
+        verbose -
+            If true, method prints how the sub-tree is formed.
         """
 
         if instances is None:
             instances = self.instances
 
-        self.tree = self.make_subtree(instances)
+        self.tree = self.make_subtree(instances, verbose)
 
-    def make_subtree(self, instances):
-        """Return a decision sub-tree
+    def make_subtree(self, instances, verbose=False):
+        """Return a decision sub-tree starting with instances at top
+
+        verbose -
+            If true, prints intermediate stages of computation. If true, we
+            self.feature_names to be a list of strings containing the names of
+            the features
         """
+
+        if verbose:
+            assert hasattr(self, 'feature_names')
 
         split_criteria = self.determine_split_candidates(instances)
 
@@ -220,6 +230,14 @@ class DT_classifier():
 
             assert sum(counts) == len(instances)
 
+            if verbose:
+                print "Stopped splitting", len(instances), "instances because"
+                print "\tAll classes same?", all_classes_same
+                print "\tFew instances?", few_instances
+                print "\tNo splits have info gain?", none_have_info_gain
+                print "\tNo remaining features?", no_remaining_features
+                print "\tLeaf node is of value:", node_value
+
             # Return child-less node with class as the node value
             return Node.Node(node_value)
 
@@ -233,10 +251,28 @@ class DT_classifier():
             best_criterion = split_criteria[info_gains.index(max(info_gains))]
             partitions = self.partition_instances(instances, best_criterion)
 
+            def get_label_histogram(instances):
+                "Return the histogram of labels for a list of instances"
+                histogram = [
+                        sum([instance[-1] == label for instance in partition])
+                        for label in self.value_enumerations[-1]
+                        ]
+                return histogram
+
+            if verbose:
+                feature_ind, threshold = best_criterion
+                label_histograms = [get_label_histogram(partition)
+                        for partition in partitions]
+                print "Further splitting of",  \
+                        self.feature_names[feature_ind],  \
+                        "at", threshold
+                print "\tPartitions break into [label1, label2]:"
+                print "\t", " ".join(map(str, label_histograms))
+
             # Recursively split each partition
             node = Node.Node(best_criterion)
             for partition in partitions:
-                subtree = self.make_subtree(partition)
+                subtree = self.make_subtree(partition, verbose=verbose)
                 node.children.append(subtree)
 
             return node
