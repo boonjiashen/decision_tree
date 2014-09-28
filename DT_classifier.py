@@ -260,6 +260,25 @@ class DT_classifier():
                 return histogram
 
             if verbose:
+
+                # Print top split criteria
+                # each valued criteria is a list [feature_index, threshold,
+                # info_gain]
+                valued_criteria = [list(criterion) + [info_gain]
+                        for criterion, info_gain
+                        in zip(split_criteria, info_gains)]
+                valued_criteria.sort(key=lambda x: x[-1], reverse=True)
+                n_results = 5
+                print "Top", n_results, "of", len(split_criteria), "criteria are:"
+                for feat_ind, thresh, info_gain in valued_criteria:
+                    feature_name = self.feature_names[feat_ind]
+                    print '\t', feature_name, thresh,  \
+                            "info gain =", info_gain
+                split_is_mass =  \
+                        self.feature_names[valued_criteria[0][0]] == "mass"
+                #if split_is_mass: assert False
+
+                # Print how instances will be split from this node
                 feature_ind, threshold = best_criterion
                 label_histograms = [get_label_histogram(partition)
                         for partition in partitions]
