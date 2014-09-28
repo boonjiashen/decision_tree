@@ -343,14 +343,15 @@ class DT_classifier():
             partition_index = unique_feature_values.index(feature_value)
             partitions[partition_index].append(instance)
 
-        # Candidate splits are mid-points of partitions with different class
-        # labels
+        # Candidate splits are mid-points of partitions which contain a pair of
+        # different class labels
         candidates = []
         for p1, p2 in zip(partitions[:-1], partitions[1:]):
             label_set1 = set([instance[-1] for instance in p1])
             label_set2 = set([instance[-1] for instance in p2])
 
-            if label_set1.symmetric_difference(label_set2):
+            no_pair = label_set1 == label_set2 and len(label_set1) == 1
+            if not no_pair:
                 midpoint = (
                         p1[0][feature_ind] +
                         p2[0][feature_ind]) / 2.
