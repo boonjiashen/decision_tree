@@ -353,7 +353,7 @@ class DT_classifier():
             if label_set1.symmetric_difference(label_set2):
                 midpoint = (
                         p1[0][feature_ind] +
-                        p2[0][feature_ind]) / 2
+                        p2[0][feature_ind]) / 2.
                 candidates.append((feature_ind, midpoint, ))
 
         return candidates
